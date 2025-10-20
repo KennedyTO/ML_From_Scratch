@@ -1,0 +1,67 @@
+import numpy as np # Enables Python to handle math operations and array manipulations efficiently.
+from collections import Counter # 
+
+class Node:
+    def __init__(self, feature=None, threshold=None, left=None, right=None,*,value=None): 
+        self.feature = feature 
+        self.threshold = threshold 
+        self.left = left
+        self.right = right
+        self.value=None
+
+# The code below defines a Node, which acts as either a decision point or a final prediction 
+# within the decision tree. In the context of this study, a node may represent a financial 
+# condition such as whether an individual has emergency savings, reports high financial 
+# satisfaction, or falls above a certain income threshold. The constructor 'def __init__' allows 
+# Python to create a new node each time the model needs to ask a question or store a prediction. 
+# The feature argument records which financial variable is being tested, while threshold specifies 
+# the cutoff used to divide participants into two groups (for example, income levels above or below 
+# a certain bracket). The left and right parameters connect the current node to its subsequent branches, 
+# where left handles individuals who meet the condition and right handles those who do not. 
+
+# The asterisk * before value enforces that value can only be provided as a keyword argument, 
+# making it clear that it should only be used when the node is a final outcome rather than a 
+# decision point. When provided, value stores the predicted result (e.g., high or low risk tolerance), 
+# and the use of self ensures that each node keeps its own information independent from other nodes. 
+# Together, these components translate human-style financial reasoning into a structured and programmable form.
+
+    def is_leaf_node(self, min_sample_split=2, max_depth=100, n_features=None):
+        return self.value is not None
+# The is_leaf_node method checks if the current node is a leaf node, which means it contains a final prediction
+# rather than a decision point. In the context of financial decision-making, a leaf node might represent a conclusion such as 
+# "high risk tolerance" or "low risk tolerance" based on the analysis of various financial factors. 
+
+# The method returns True if the node has a value assigned, indicating that it is indeed a leaf node. 
+# The parameters min_sample_split, max_depth, and n_features are included for consistency with the overall decision tree structure, 
+# but they are not directly used in this method. The use of self ensures that the method checks the specific instance of the node.
+# These components are adapted from Breiman et al. (2017)
+
+class DecisionTree:
+    def __init__(self, min_sample_split=2, max_depth=100, n_features=None):
+        self.min_sample_split = min_sample_split 
+        self.max_depth = max_depth
+        self.n_features = n_features
+        self.root = None
+# This code defines a DecisionTree, which serves as the main structure for building and using a decision tree model.
+# The constructor 'def __init__' initializes the tree with specific parameters that control its growth and complexity.
+
+# The min_sample_split parameter sets the minimum number of samples required to split a node, ensuring that the tree 
+# does not create overly specific branches based on too few data points.
+
+# The max_depth parameter limits how deep the tree can grow, preventing it from becoming too complex and overfitting 
+# the training data.
+
+# The n_features parameter allows for the selection of a subset of features to consider at each split, 
+# which can help improve the model's performance and reduce computation time.
+
+# The root is initialized to None and will later hold the topmost node of the tree once it is built
+
+    def fit(self, X, y):
+        self.n_featrues = X.shape[1] if not self.n_features else min(self.n_features, X.shape[1])
+        self.root = self._grow_tree(X, y)
+        
+
+    
+
+    def predict():
+
