@@ -58,8 +58,23 @@ class DecisionTree:
     def fit(self, X, y):
         self.n_features = X.shape[1] if not self.n_features else min(self.n_features, X.shape[1])
         self.root = self.__grow__tree(X, y)
-    # This code builds the decision tree by finding the best splits in the data
-    # and creating nodes accordingly.
+    # This code defines the training (or “fitting”) process for a decision tree model in Python. 
+    # The fit method takes three parameters—self, X, and y. In Python classes, self represents 
+    # the specific instance of the model being created; it lets the model remember what’s being 
+    # stored inside it, such as learned parameters or structure. The variable X stands for the 
+    # input data that contains all the predictor variables (similar to independent variables in statistics), 
+    # and y represents the outcome or target variable the model will learn to predict. 
+    
+    # The first line inside the method, self.n_features = X.shape[1] if not self.n_features 
+    # else min(self.n_features, X.shape[1]), tells Python to check how many columns (features) 
+    # are in X and either set or limit that number based on what was previously defined. In simpler terms, this line determines how many variables the tree should consider 
+    # during training. 
+    # 
+    # The second line, self.root = self.__grow__tree(X, y), calls another function that begins building 
+    # the decision tree structure by finding the best way to split the data at each step. Altogether, 
+    # this block of code shows how Python uses methods, attributes (like self.n_features), and functions 
+    # (like __grow__tree) to teach a machine learning model how to learn patterns from data.
+
 
     def __grow__tree(self, X, y, depth=0):
         n_samples, n_features = X.shape
