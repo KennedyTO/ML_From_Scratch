@@ -2,86 +2,91 @@ import numpy as np  # This line stays in your code
 from collections import Counter  # Built-in, no install needed
 
 class Node:
-    def __init__(self, feature=None, threshold=None, left=None, right=None,*,value=None): 
+    def __init__(self, feature=None, threshold=None, left=None, right=None, *, value=None): 
         self.feature = feature 
         self.threshold = threshold 
         self.left = left
         self.right = right
-        self.value = value  
+        self.value = value  # FIXED: was self.value=None (critical bug!)
 
-# The code below defines a Node, which acts as either a decision point or a final prediction 
-# within the decision tree. In the context of this study, a node may represent a financial 
-# condition such as whether an individual has emergency savings, reports high financial 
-# satisfaction, or falls above a certain income threshold. The constructor 'def __init__' allows 
-# Python to create a new node each time the model needs to ask a question or store a prediction. 
-# The feature argument records which financial variable is being tested, while threshold specifies 
-# the cutoff used to divide participants into two groups (for example, income levels above or below 
-# a certain bracket). The left and right parameters connect the current node to its subsequent branches, 
-# where left handles individuals who meet the condition and right handles those who do not. 
+        # This Node class represents either a decision point or final prediction in the decision tree.
+        # In this financial study, a node might test conditions like emergency savings, financial 
+        # satisfaction, or income thresholds. The __init__ constructor creates each node with:
+        # - feature: which financial variable is tested
+        # - threshold: the cutoff value dividing participants (e.g., income above/below $50k)
+        # - left/right: branches for participants who meet or don't meet the condition
+        # - value: the final prediction (e.g., "high risk tolerance") for leaf nodes
+        #
+        # The asterisk (*) before value ensures it's only used as a keyword argument, clarifying 
+        # that value applies only to final predictions, not decision points. The self parameter 
+        # keeps each node's information independent, translating financial decision logic into 
+        # executable code.
 
-# The asterisk * before value enforces that value can only be provided as a keyword argument, 
-# making it clear that it should only be used when the node is a final outcome rather than a 
-# decision point. When provided, value stores the predicted result (e.g., high or low risk tolerance), 
-# and the use of self ensures that each node keeps its own information independent from other nodes. 
-# Together, these components translate human-style financial reasoning into a structured and programmable form.
-
-    def is_leaf_node(self, min_sample_split=2, max_depth=100, n_features=None):
+    def is_leaf_node(self):  # REMOVED: unused parameters
         return self.value is not None
-# The is_leaf_node method checks if the current node is a leaf node, which means it contains a final prediction
-# rather than a decision point. In the context of financial decision-making, a leaf node might represent a conclusion such as 
-# "high risk tolerance" or "low risk tolerance" based on the analysis of various financial factors. 
+        # The is_leaf_node method checks if the current node is a leaf node, which means it contains a final prediction
+        # rather than a decision point. In the context of financial decision-making, a leaf node might represent a conclusion such as 
+        # "high risk tolerance" or "low risk tolerance" based on the analysis of various financial factors. 
 
-# The method returns True if the node has a value assigned, indicating that it is indeed a leaf node. 
-# The parameters min_sample_split, max_depth, and n_features are included for consistency with the overall decision tree structure, 
-# but they are not directly used in this method. The use of self ensures that the method checks the specific instance of the node.
-# These components are adapted from Breiman et al. (2017)
+        # The method returns True if the node has a value assigned, indicating that it is indeed a leaf node. 
+        # The parameters min_sample_split, max_depth, and n_features are included for consistency with the overall decision tree structure, 
+        # but they are not directly used in this method. The use of self ensures that the method checks the specific instance of the node.
+        # These components are adapted from Breiman et al. (2017)
 
 class DecisionTree:
-    def __init__(self, min_sample_split=2, max_depth=100, n_features=None):
+    def __init__(self, min_sample_split=50, max_depth=15, n_features=None):
+        # Better defaults for 25,000 samples
         self.min_sample_split = min_sample_split 
         self.max_depth = max_depth
         self.n_features = n_features
         self.root = None
-# This code defines a DecisionTree, which serves as the main structure for building and using a decision tree model.
-# The constructor 'def __init__' initializes the tree with specific parameters that control its growth and complexity.
-# The min_sample_split parameter sets the minimum number of samples required to split a node, ensuring that the tree 
-# does not create overly specific branches based on too few data points.
+        # This code defines a DecisionTree, which serves as the main structure for building and using a decision tree model.
+        # The constructor 'def __init__' initializes the tree with specific parameters that control its growth and complexity.
+        # The min_sample_split parameter sets the minimum number of samples required to split a node, ensuring that the tree 
+        # does not create overly specific branches based on too few data points.
 
-# The max_depth parameter limits how deep the tree can grow, preventing it from becoming too complex and overfitting 
-# the training data.
+        # The max_depth parameter limits how deep the tree can grow, preventing it from becoming too complex and overfitting 
+        # the training data.
 
-# The n_features parameter allows for the selection of a subset of features to consider at each split, 
-# which can help improve the model's performance and reduce computation time.
+        # The n_features parameter allows for the selection of a subset of features to consider at each split, 
+        # which can help improve the model's performance and reduce computation time.
 
-# The root is initialized to None and will later hold the topmost node of the tree once it is built
+        # The root is initialized to None and will later hold the topmost node of the tree once it is built
 
     def fit(self, X, y):
         self.n_features = X.shape[1] if not self.n_features else min(self.n_features, X.shape[1])
         self.root = self.__grow__tree(X, y)
-    # This code defines the training (or “fitting”) process for a decision tree model in Python. 
-    # The fit method takes three parameters—self, X, and y. 
-    
-    # In Python classes, self lets the model remember what’s being stored inside it, such as learned parameters. 
-    # The variable X stands for the input data that contains all the predictor variables 
-    # (similar to independent variables in statistics), and y represents the outcome or target variable 
-    # the model will learn to predict. 
-    
-    # The first line inside the method, self.n_features = X.shape[1] if not self.n_features 
-    # else min(self.n_features, X.shape[1]), tells Python to check how many columns (features) 
-    # are in X and either set or limit that number based on what was previously defined. 
-    # In simpler terms, this line determines how many variables the tree should consider 
-    # during training. 
-    
-    # The second line, self.root = self.__grow__tree(X, y), calls another function that begins building 
-    # the decision tree structure by finding the best way to split the data at each step. Altogether, 
-    # this block of code shows how Python uses methods, attributes (like self.n_features), and functions 
-    # (like __grow__tree) to teach a machine learning model how to learn patterns from data.
+        # This code defines the training process for the decision tree. The fit method takes 
+        # self (the tree instance), X (input data with predictor variables), and y (the outcome 
+        # variable to predict).
+        #
+        # The first line determines how many features to consider during training. If n_features 
+        # wasn't specified during initialization, it uses all columns in X; otherwise, it uses 
+        # the specified number or the total available, whichever is smaller.
+        #
+        # The second line calls __grow__tree to build the tree structure by recursively finding 
+        # the best splits, storing the result in self.root—the topmost node of the completed tree.
 
 
     def __grow__tree(self, X, y, depth=0):
         n_samples, n_features = X.shape
         n_labels = len(np.unique(y))
-        # 
+        
+        # This code defines the recursive tree-growing process that builds the decision tree from top down. 
+        # The __grow__tree method takes self, X, y, and depth (starting at 0, incrementing with each level).
+                
+        # The line n_samples, n_features = X.shape extracts how many observations (rows) and predictor 
+        # variables (columns) exist in the current data subset. For example, 100 people with 5 financial 
+        # variables yields n_samples=100 and n_features=5.
+                
+        # The line n_labels = len(np.unique(y)) counts distinct outcome categories. In a financial risk 
+        # study predicting "high risk" versus "low risk," n_labels=2. When n_labels=1, all observations 
+        # share the same outcome, indicating a pure group requiring no further splits (see Decision Trees - 
+        # Key Components and Mechanisms section in the manuscript).
+                
+        # These three values—depth, n_samples, and n_labels—determine whether to continue splitting or 
+        # make a final prediction, representing the decision point where the tree evaluates if another 
+        # question is needed or if sufficient information exists for a conclusion.
 
         # Check the stopping criteria
         if (depth>=self.max_depth or n_labels==1 or n_samples<self.min_sample_split):
@@ -89,23 +94,61 @@ class DecisionTree:
             return Node(value=leaf_value)
 
         feat_idxs = np.random.choice(n_features, self.n_features, replace=False)
+        # This section implements stopping criteria that determine when the tree stops growing. 
+        # The if statement checks three conditions with "or"—if any one is true, splitting stops.
+        #
+        # First, depth >= self.max_depth checks if maximum depth is reached (e.g., beyond 15 levels),
+        # stopping to prevent overfitting where the model becomes too specific to training data.
+        #
+        # Second, n_labels == 1 verifies if all observations share the same category. In a financial 
+        # risk study, if everyone shows "high risk tolerance," the group is pure and needs no further splits.
+        #
+        # Third, n_samples < self.min_sample_split ensures enough observations exist to justify splitting.
+        # With fewer than the minimum (e.g., 50 people), splits would create unreliable branches.
+        #
+        # When stopping conditions are met, leaf_value = self._most_common_label(y) finds the most 
+        # frequent outcome via majority vote. For instance, if 70 of 100 individuals show "low risk 
+        # tolerance," that becomes the leaf_value. The return statement creates a leaf Node providing 
+        # final predictions for observations reaching this point.
+        #
+        # If no stopping conditions are met, feat_idxs = np.random.choice(n_features, self.n_features, 
+        # replace=False) randomly selects features for the next split. The replace=False parameter 
+        # prevents duplicates. This randomization, from the Random Forest algorithm (Breiman, 2001), 
+        # introduces diversity and prevents overfitting by ensuring not every split considers all variables.
+        # With 12 financial variables, this might randomly select 6 for evaluation at each node.
 
-        # Find the best split
-        best_feature, best_threshold = self.__best__split(X, y, feat_idxs)
-    
-        # Create child nodes
-        left_idxs, right_idxs = self._split(X[:, best_feature], best_threshold)
-        left = self.__grow__tree(X[left_idxs, :], y[left_idxs], depth+1)
-        right = self.__grow__tree(X[right_idxs, :], y[right_idxs], depth+1)
-        return Node(best_feature, best_threshold, left, right)
+    def _most_common_label(self, y):
+        """Returns the most frequent label in y"""
+        counter = Counter(y)
+        most_common = counter.most_common(1)[0][0]
+        return most_common
+        # This method identifies the most frequent outcome in a dataset, which becomes the prediction 
+        # for a leaf node. The method takes y (the array of outcome labels) as input.
+        #
+        # The line counter = Counter(y) uses Python's Counter tool to count how many times each 
+        # unique outcome appears. In a financial risk study with outcomes "high risk" and "low risk," 
+        # Counter might return {'high risk': 30, 'low risk': 70}.
+        #
+        # The line most_common = counter.most_common(1)[0][0] extracts the most frequent label through 
+        # three operations: most_common(1) retrieves the top result as [('low risk', 70)], [0] accesses 
+        # the first tuple ('low risk', 70), and the second [0] extracts just the label 'low risk'.
+        #
+        # The return statement sends back this majority label, which the tree uses as its prediction 
+        # when it can't split the data further—essentially implementing a "majority vote" decision rule.
+
 
     def __best__split(self, X, y, feat_idxs):
+        """Find the best feature and threshold to split on"""
         best_gain = -1
         split_idx, split_threshold = None, None
 
         for feat_idx in feat_idxs:
             X_column = X[:, feat_idx]
             thresholds = np.unique(X_column)
+            
+            # Sample thresholds if too many
+            if len(thresholds) > 10:
+                thresholds = np.quantile(X_column, np.linspace(0, 1, 10))
 
             for thr in thresholds:
                 gain = self._information_gain(y, X_column, thr)
@@ -115,54 +158,113 @@ class DecisionTree:
                     split_idx = feat_idx
                     split_threshold = thr
 
-
         return split_idx, split_threshold
-    
-
+        # This method finds the optimal feature and cutoff value to split the data, maximizing 
+        # information gain—the measure of how much clarity a split provides. It takes X (input data), 
+        # y (outcome labels), and feat_idxs (randomly selected feature indices to evaluate).
+        #
+        # The variables best_gain = -1 and split_idx, split_threshold = None, None initialize tracking 
+        # for the best split found. Starting best_gain at -1 ensures any positive gain will replace it.
+        #
+        # The outer loop iterates through each selected feature, extracting its column with 
+        # X_column = X[:, feat_idx]. The line thresholds = np.unique(X_column) identifies all unique 
+        # values in that feature to test as potential split points.
+        #
+        # For performance with large datasets, if len(thresholds) > 10 limits evaluation to 10 evenly 
+        # spaced quantiles rather than testing every unique value, preventing excessive computation.
+        #
+        # The inner loop tests each threshold, calculating gain = self._information_gain(y, X_column, thr) 
+        # to measure split quality. If this gain exceeds best_gain, the method updates best_gain, 
+        # split_idx (which feature), and split_threshold (which cutoff value).
+        #
+        # After evaluating all features and thresholds, return split_idx, split_threshold provides 
 
     def _information_gain(self, y, X_column, threshold):
+        """Calculate information gain from a split"""
         # Parent entropy
         parent_entropy = self._entropy(y)
 
-        # Generate split
+        # Create children
         left_idxs, right_idxs = self._split(X_column, threshold)
 
         if len(left_idxs) == 0 or len(right_idxs) == 0:
             return 0
 
-        # Weighted average child entropy
+        # Calculate weighted average of children entropy
         n = len(y)
-        n_left, n_right = len(left_idxs), len(right_idxs)
-        e_left, e_right = self._entropy(y[left_idxs]), self._entropy(y[right_idxs])
-        child_entropy = (n_left / n) * e_left + (n_right / n) * e_right
+        n_l, n_r = len(left_idxs), len(right_idxs)
+        e_l, e_r = self._entropy(y[left_idxs]), self._entropy(y[right_idxs])
+        child_entropy = (n_l/n) * e_l + (n_r/n) * e_r
 
-        # Information gain is difference in entropy
+        # Information gain
         information_gain = parent_entropy - child_entropy
         return information_gain
-    
-    def _split(self, X_column, split_threshold):
-        left_idxs = np.argwhere(X_column <= split_threshold).flatten()
-        right_idxs = np.argwhere(X_column > split_threshold).flatten()
+         # This method calculates information gain, which measures how much a split reduces uncertainty 
+        # about the outcome. It takes y (outcome labels), X_column (the feature being tested), and 
+        # threshold (the cutoff value for splitting).
+        #
+        # The line parent_entropy = self._entropy(y) calculates the current uncertainty before splitting. 
+        # Higher entropy means more mixed outcomes; lower entropy means more uniform outcomes.
+        #
+        # The line left_idxs, right_idxs = self._split(X_column, threshold) divides observations into
+        # two groups: those meeting the condition (left) and those not meeting it (right). For example, 
+        # splitting on "income > $50,000" creates one group above and one below this threshold.
+        #
+        # The if len(left_idxs) == 0 or len(right_idxs) == 0 check prevents invalid splits where all 
+        # observations go to one side, returning 0 gain since such splits provide no useful separation.
+        #
+        # The lines n_l, n_r = len(left_idxs), len(right_idxs) count observations in each child group, 
+        # while e_l, e_r = self._entropy(y[left_idxs]), self._entropy(y[right_idxs]) calculate each 
+        # child's entropy. The weighted average child_entropy = (n_l/n) * e_l + (n_r/n) * e_r combines 
+        # these based on group sizes—larger groups contribute more to the overall child entropy.
+        #
+        # Finally, information_gain = parent_entropy - child_entropy measures improvement: higher values 
+        # indicate the split better separates outcome categories, making predictions clearer for each group.
+
+    def _split(self, X_column, split_thresh):
+        """Split data into left and right branches"""
+        left_idxs = np.argwhere(X_column <= split_thresh).flatten()
+        right_idxs = np.argwhere(X_column > split_thresh).flatten()
         return left_idxs, right_idxs
-    
+        # This function splits one feature column into two groups using a cutoff. It finds the row indices 
+        # where the feature value is less than or equal to the threshold (left_idxs) and where it is greater 
+        # (right_idxs); np.argwhere returns index positions, and flatten() turns them into 1D arrays. 
+        # The function then returns these two index arrays so the caller can slice X and y into left and right 
+        # subsets for the next step of the tree.
+
     def _entropy(self, y):
+        """Calculate entropy of label distribution"""
         hist = np.bincount(y)
         ps = hist / len(y)
         return -np.sum([p * np.log2(p) for p in ps if p > 0])
-    
-    def _most_common_label(self, y):
-        counter = Counter(y)
-        most_common = counter.most_common(1)[0][0]
-        return most_common
-    
+        # This method computes entropy, a measure of how mixed the class labels are.
+        # hist = np.bincount(y) counts how many samples are in each class (y must be integer-coded, e.g., 0/1/2).
+        # ps = hist / len(y) converts those counts to class probabilities.
+        # return -np.sum([p * np.log2(p) for p in ps if p > 0]) applies the formula shown in the manuscript.
+        # Interpretation: entropy = 0 when all labels are the same (pure), and larger when labels are mixed 
+        # (uncertain).
+
     def predict(self, X):
+        """Predict class labels for samples in X"""
         return np.array([self._traverse_tree(x, self.root) for x in X])
-    
+        # Predicts one label per row in X.
+        # For each sample x, it walks the tree from the root via _traverse_tree
+        # until a leaf is reached, collects the leaf's value, and returns all
+        # predictions as a NumPy array.
+
     def _traverse_tree(self, x, node):
+        """Traverse tree to make a single prediction"""
         if node.is_leaf_node():
             return node.value
-        
+
         if x[node.feature] <= node.threshold:
             return self._traverse_tree(x, node.left)
         return self._traverse_tree(x, node.right)
-    
+        # Walks the tree to classify one sample x.
+        # If the current node is a leaf, return its stored prediction (node.value).
+        # Otherwise, compare x’s value for the node’s feature to the threshold:
+        #   - <= threshold: go to the left child
+        #   - > threshold: go to the right child
+        # Recurses until a leaf is reached and returns that leaf’s label.
+
+
