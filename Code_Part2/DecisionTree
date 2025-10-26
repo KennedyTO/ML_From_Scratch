@@ -1,0 +1,7 @@
+"""
+Obsolete file: the DecisionTree implementation has been moved to DecisionTree.py.
+Please import using: from Code_Part2.DecisionTree import DecisionTree
+This file is retained only to avoid breaking references in some editors.
+"""
+
+

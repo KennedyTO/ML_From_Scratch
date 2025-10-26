@@ -1,4 +1,4 @@
-import numpy as np  # This line stays in your code
+import numpy as np 
 from collections import Counter  # Built-in, no install needed
 
 class Node:
@@ -7,7 +7,7 @@ class Node:
         self.threshold = threshold 
         self.left = left
         self.right = right
-        self.value = value  # FIXED: was self.value=None (critical bug!)
+        self.value = value 
 
         # This Node class represents either a decision point or final prediction in the decision tree.
         # In this financial study, a node might test conditions like emergency savings, financial 
@@ -55,7 +55,7 @@ class DecisionTree:
 
     def fit(self, X, y):
         self.n_features = X.shape[1] if not self.n_features else min(self.n_features, X.shape[1])
-        self.root = self.__grow__tree(X, y)
+        self._grow_tree(X, y)
         # This code defines the training process for the decision tree. The fit method takes 
         # self (the tree instance), X (input data with predictor variables), and y (the outcome 
         # variable to predict).
@@ -64,16 +64,16 @@ class DecisionTree:
         # wasn't specified during initialization, it uses all columns in X; otherwise, it uses 
         # the specified number or the total available, whichever is smaller.
         #
-        # The second line calls __grow__tree to build the tree structure by recursively finding 
+        # The second line calls _grow_tree to build the tree structure by recursively finding 
         # the best splits, storing the result in self.root—the topmost node of the completed tree.
 
 
-    def __grow__tree(self, X, y, depth=0):
+    def _grow_tree(self, X, y, depth=0):
         n_samples, n_features = X.shape
         n_labels = len(np.unique(y))
         
         # This code defines the recursive tree-growing process that builds the decision tree from top down. 
-        # The __grow__tree method takes self, X, y, and depth (starting at 0, incrementing with each level).
+        # The _grow_tree method takes self, X, y, and depth (starting at 0, incrementing with each level).
                 
         # The line n_samples, n_features = X.shape extracts how many observations (rows) and predictor 
         # variables (columns) exist in the current data subset. For example, 100 people with 5 financial 
@@ -117,6 +117,23 @@ class DecisionTree:
         # introduces diversity and prevents overfitting by ensuring not every split considers all variables.
         # With 12 financial variables, this might randomly select 6 for evaluation at each node.
 
+        # Find the best split
+        best_feature, best_threshold = self._best_split(X, y, feat_idxs)
+
+        # Create child nodes
+        left_idxs, right_idxs = self._split(X[:, best_feature], best_threshold)
+        left = self._grow_tree(X[left_idxs, :], y[left_idxs], depth+1)
+        right = self._grow_tree(X[right_idxs, :], y[right_idxs], depth+1)
+        
+        # Return decision node
+        return Node(best_feature, best_threshold, left, right)
+        # This section builds the tree recursively after determining no stopping conditions were met.
+        # First, _best_split identifies which feature and threshold yield the highest information gain.
+        # Then, _split divides the data into left (values ≤ threshold) and right (values > threshold) groups.
+        # The method calls itself recursively on each subset with depth+1, building left and right child nodes.
+        # Finally, it returns a decision node storing the split feature, threshold, and pointers to both children,
+        # forming the internal structure that will later guide predictions through the tree.
+
     def _most_common_label(self, y):
         """Returns the most frequent label in y"""
         counter = Counter(y)
@@ -137,7 +154,7 @@ class DecisionTree:
         # when it can't split the data further—essentially implementing a "majority vote" decision rule.
 
 
-    def __best__split(self, X, y, feat_idxs):
+    def _best_split(self, X, y, feat_idxs):
         """Find the best feature and threshold to split on"""
         best_gain = -1
         split_idx, split_threshold = None, None
@@ -178,6 +195,8 @@ class DecisionTree:
         # split_idx (which feature), and split_threshold (which cutoff value).
         #
         # After evaluating all features and thresholds, return split_idx, split_threshold provides 
+        # the best split found—for example, "income > $50,000" if that division best separates 
+        # high and low risk tolerance groups.
 
     def _information_gain(self, y, X_column, threshold):
         """Calculate information gain from a split"""
