@@ -4,8 +4,7 @@ from sklearn.model_selection import train_test_split
 from Code_Part2.DecisionTree import DecisionTree
 
 # Build a path relative to the repo root (parent of Code_Part2)
-DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "NFCS" / "NFCS.csv"
-assert DATA_PATH.exists(), f"File not found: {DATA_PATH}"
+DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "NFCS"/ "NFCS.csv"
 
 # Load dataset (local file; no sklearn.datasets needed)
 df = pd.read_csv(DATA_PATH)
@@ -18,10 +17,6 @@ df.columns = df.columns.str.strip().str.lower()
 # df["date_col"] = pd.to_datetime(df["date_col"], errors="coerce")
 
 # 3) Handle missing values (simple, in-place)
-num_cols = df.select_dtypes(include="number").columns
-cat_cols = df.select_dtypes(exclude="number").columns
-df[num_cols] = df[num_cols].fillna(df[num_cols].median())
-df[cat_cols] = df[cat_cols].fillna("missing")
 
 # 4) Drop duplicates (optional)
 # df = df.drop_duplicates()
